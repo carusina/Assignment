@@ -5,10 +5,10 @@ timputs:
     description: 'Enter a number'
     required: ture
     default: "1"
-outpits:
+outputs:
   num_squared:
   description: 'Square of the input'
-  value: ${{ runs.steps.get-square.outputs.num_squared}}
+  value: ${{ steps.get-square.outputs.num_squared}}
 
 runs:
   using: 'composite'
