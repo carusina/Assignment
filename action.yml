@@ -2,21 +2,21 @@ name:
 description:
 timputs:
   num:
-    description: 'Enter a number'
+    description: "Enter a number"
     required: ture
     default: "1"
 outputs:
   num_squared:
-  description: 'Square of the input'
+  description: "Square of the input"
   value: ${{ steps.get-square.outputs.num_squared}}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: "3.10"
     - name: Istall Dependencies
       run: pip install -r requirments.txt
       shell: bash
