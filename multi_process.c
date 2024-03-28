@@ -6,7 +6,7 @@
 #include <time.h>
 
 int main() {
-    // 프로세스 생성 개수
+    // 프로세스 생성 개수 (8 or 10)
     int N = 8;
     
     // 1000을 N등분
@@ -17,8 +17,10 @@ int main() {
 
     // 가장 먼저 생성된 프로세스인지 아닌지 확인하는 값
     int not_root = 0;
-                                                
+
+    // wait 인자
     int status;
+
     pid_t pid;
 
     clock_t start = clock();    // 프로그램 수행 시간 측정
@@ -34,6 +36,7 @@ int main() {
         }
     }
 
+    // fork()로 생성한 프로세스이면 계산 수행
     if(not_root) {
         for(int i = 1; i < num+1; i++) {
             printf("%d * 7 = %d\n", cnt*num+i, (cnt*num+i)*7);
@@ -42,6 +45,7 @@ int main() {
     else {
         while(wait(&status) != pid) continue; // 자식 프로세스가 끝날 때 까지 대기
         clock_t end = clock();
-        printf("Processing Time: %lf\n", (double)(end-start));   
+        printf("Processing Time: %lf\n", (double)(end-start)/CLOCKS_PER_SEC);
+        printf("The Number of Process: %d\n", cnt+1);
     }
 }
