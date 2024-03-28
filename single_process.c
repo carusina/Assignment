@@ -1,11 +1,8 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <time.h>
 
 int main() {
-    int num = 8000;
+    int num = 1000;
     
     clock_t start = clock();
     for(int i = 1; i < num+1; i++) {
@@ -13,5 +10,5 @@ int main() {
     }
     clock_t end = clock();
 
-    printf("Processing Time: %lf\n", (double)(end-start));
+    printf("Processing Time: %lf\n", (double)(end-start)/CLOCKS_PER_SEC);
 }
