@@ -3,78 +3,26 @@
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
-// 윤년 여부를 판단하는 함수
-int isLeapYear(int year) {
-    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
-        return 1;
-    else
-        return 0;
-}
-
-// 해당 월의 일수를 반환하는 함수
-int daysInMonth(int year, int month) {
-    int days[] = {31, 28 + isLeapYear(year), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    return days[month - 1];
-}
-
-// 달력을 출력하는 함수
-void Calendar(char buf[], char result[]) {
-    int i, j, day;
-    int startingDay;
-    char cyear[5], cmonth[3], cday[5];
-
-    strncpy(cyear, buf, 4);
-    strncpy(cmonth, buf+5, 2);
-
-    int year = atoi(cyear);
-    int month = atoi(cmonth);
-
-    // 해당 월의 1일이 무슨 요일인지 계산
-    startingDay = 1;
-    for (i = 1900; i < year; i++) {
-        for (j = 1; j <= 12; j++) {
-            startingDay = (startingDay + daysInMonth(i, j)) % 7;
-        }
-    }
-    for (j = 1; j < month; j++) {
-        startingDay = (startingDay + daysInMonth(year, j)) % 7;
-    }
-
-    // 달력 출력
-    strcat(result, "SUN MON THU WED THU FRI SAT\n");
-    for (i = 0; i < startingDay; i++) {
-        strcat(result, "    ");
-    }
-    for (day = 1; day <= daysInMonth(year, month); day++) {
-        sprintf(cday, "%3d", day); cday[3] = ' '; cday[4] = '\0';
-        strcat(result, cday);
-        
-        startingDay++;
-        if (startingDay % 7 == 0)
-            strcat(result, " \n");
-    }
-    strcat(result, " \n");
-}
-
 int main(int argc, char *argv[])
 {
 	int retval;
 
 	// 소켓 생성
-	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0); // 인터넷 주소 체계의 연결형 서비스
+                                                          // 성공적으로 생성시 소켓 디스크립터 반환
 	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
 
 	// bind()
 	struct sockaddr_in serveraddr;
-	memset(&serveraddr, 0, sizeof(serveraddr));
+	memset(&serveraddr, 0, sizeof(serveraddr)); // serveraddr 세팅
 	serveraddr.sin_family = AF_INET;
-	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	serveraddr.sin_port = htons(SERVERPORT);
-	retval = bind(listen_sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY); // IP 주소
+	serveraddr.sin_port = htons(SERVERPORT); // 포트 번호
+	retval = bind(listen_sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); // 소켓에 IP와 포트 할당
 	if (retval == SOCKET_ERROR) err_quit("bind()");
 
 	// listen()
-	retval = listen(listen_sock, SOMAXCONN);
+	retval = listen(listen_sock, SOMAXCONN); // 연결 요청 대기 상태, SOMAXCONN만큼의 연결 요청 대기 큐
 	if (retval == SOCKET_ERROR) err_quit("listen()");
 
 	// 데이터 통신에 사용할 변수
@@ -86,7 +34,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		// accept()
 		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (struct sockaddr *)&clientaddr, &addrlen);
+		client_sock = accept(listen_sock, (struct sockaddr *)&clientaddr, &addrlen); // 대기중인 클라이언트의 연결 요청을 수락
 		if (client_sock == INVALID_SOCKET) {
 			err_display("accept()");
 			break;
@@ -94,14 +42,16 @@ int main(int argc, char *argv[])
 
 		// 접속한 클라이언트 정보 출력
 		char addr[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr)); // 클라이언트 IP를 AF_INET를 기준으로 binary에서
+                                                                      // 알아볼 수 있게 변환해서 저장
 		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 
 		// 클라이언트와 데이터 통신
 		while (1) {
 			// 데이터 받기
-			retval = recv(client_sock, buf, BUFSIZE, 0);
+			retval = recv(client_sock, buf, BUFSIZE, 0); // 클라이언트으로 부터 촤대 BUFSIZE byte만큼의 데이터를 받아 buf에 저장
+                                                         // 받은 데이터의 byte 리턴
 			if (retval == SOCKET_ERROR) {
 				err_display("recv()");
 				break;
@@ -110,15 +60,12 @@ int main(int argc, char *argv[])
 				break;
 
 			// 받은 데이터 출력
-			buf[retval] = '\0';
+			buf[retval] = '\0'; // 받은 데이터의 끝을 명시
 			printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
 
-			//buf에 캘린더 저장
-			char result[512];
-			Calendar(buf, result);
-	
 			// 데이터 보내기
-			retval = send(client_sock, result, retval, 0);
+			retval = send(client_sock, buf, retval, 0); // 클라이언트에게 retval byte만큼의 buf를 전달
+                                                        // 보낸 데이터의 byte 리턴
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
 				break;
