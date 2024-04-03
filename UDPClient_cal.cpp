@@ -2,7 +2,7 @@
 
 char *SERVERIP = (char *)"127.0.0.1";
 #define SERVERPORT 9000
-#define BUFSIZE    512
+#define BUFSIZE    3072
 
 int main(int argc, char *argv[])
 {
@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
 		printf("[UDP 클라이언트] %d바이트를 보냈습니다.\n", retval);
 		if(strncmp("request", buf, 7) == 0) {
 			isRequest = 1;
-			strcpy(buf+9, fname);
-			fname[retval-1] = '\0';
+			strcpy(fname, buf+9);
+			fname[retval-10] = '\0';
 		}
 
 		// 데이터 받기
@@ -82,14 +82,14 @@ int main(int argc, char *argv[])
 		
 		if(isRequest == 1) {
 			FILE *fp;
-			printf("The client received “novel.txt” from the server.\n");
 
-			if((fp = fopen(fname, "w")) == NULL) {
+			if((fp = fopen("down.txt", "w")) == NULL) {
 				printf("Cannt Open File\n");
 				break;
 			}
-
 			fputs(buf, fp);
+			fclose(fp);
+			printf("The client received \"%s\" from the server.\n", fname);
 		}
 
 		// 받은 데이터 출력
