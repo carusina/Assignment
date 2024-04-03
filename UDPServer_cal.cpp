@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 	// 데이터 통신에 사용할 변수
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen;
-	char buf[BUFSIZE*6 + 1];
+	char buf[BUFSIZE + 1];
 
 	// 클라이언트와 데이터 통신
 	while (1) {
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 		if(fp != NULL) {
-			printf("The server sent “novel.txt” to the client\n");
+			printf("The server sent \"%s\" to the client\n", fname);
 		}
 	}
 
