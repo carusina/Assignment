@@ -82,13 +82,14 @@ int main(int argc, char *argv[])
 		
 		if(isRequest == 1) {
 			FILE *fp;
-			printf("The client received \"%s\"from the server.\n", fname);
 
 			if((fp = fopen(fname, "w")) == NULL) {
 				printf("Cannt Open File\n");
 				break;
 			}
 			fputs(buf, fp);
+			printf("The client received \"%s\"from the server.\n", fname);
+			
 			fclose(fp);
 		}
 
