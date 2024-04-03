@@ -1,7 +1,7 @@
 #include "Common.h"
 
 #define SERVERPORT 9000
-#define BUFSIZE    512
+#define BUFSIZE    3072
 
 int main(int argc, char *argv[])
 {
@@ -24,11 +24,11 @@ int main(int argc, char *argv[])
 	// 데이터 통신에 사용할 변수
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen;
-	char buf[BUFSIZE + 1];
-	FILE *fp;
+	char buf[BUFSIZE*6 + 1];
 
 	// 클라이언트와 데이터 통신
 	while (1) {
+		FILE *fp = NULL;
 		// 데이터 받기
 		addrlen = sizeof(clientaddr);
 		retval = recvfrom(sock, buf, BUFSIZE, 0, (struct sockaddr *)&clientaddr, &addrlen); // 클라이언트로 부터 최대 BUFSIZE byte 만큼의
@@ -51,9 +51,9 @@ int main(int argc, char *argv[])
 		if(strncmp("request", buf, 7) == 0) {
 			printf("The server received a request from a client\n");
 
-			strcpy(buf+9, fname);
-			fname[retval-1] = '\0';
-
+			strcpy(fname, buf+9);
+			fname[retval-10] = '\0';
+			
 			if((fp = fopen(fname, "r")) == NULL) {
 				printf("Cannt Open File\n");
 				break;
