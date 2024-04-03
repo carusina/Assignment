@@ -77,9 +77,9 @@ int main(int argc, char *argv[])
 		}
 		if(fp != NULL) {
 			printf("The server sent \"%s\" to the client\n", fname);
+			fclose(fp);
 		}
 	}
-
 	// 소켓 닫기
 	close(sock);
 	return 0;
