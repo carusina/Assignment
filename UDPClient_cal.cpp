@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 				break;
 			}
 			fputs(buf, fp);
-			printf("The client received \"%s\"from the server.\n", fname);
+			printf("The client received \"%s\" from the server.\n", fname);
 			
 			fclose(fp);
 		}
