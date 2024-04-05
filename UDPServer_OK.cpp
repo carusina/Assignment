@@ -8,11 +8,13 @@ typedef struct Client
 {
 	SOCKET sock;
 	struct sockaddr_in clientaddr;
-	socklen_t addrlen;
 };
 
 void *send_msg(void * arg) {
 	Client *client = (Client *)arg;
+	SOCKET sock = client->sock;
+	struct sockaddr_in clientaddr = client->clientaddr;
+
 
 	while(1) {
 		char ch[2];
@@ -26,8 +28,8 @@ void *send_msg(void * arg) {
 		int len = (int)strlen(buf);
 
 		// 데이터 보내기
-		int retval = sendto(client->sock, buf, len, 0,
-			(struct sockaddr *)&client->clientaddr, sizeof(client->clientaddr));
+		int retval = sendto(sock, buf, len, 0,
+			(struct sockaddr *)&clientaddr, sizeof(clientaddr));
 		if (retval == SOCKET_ERROR) {
 			err_display("sendto()");
 			break;
@@ -39,14 +41,16 @@ void *send_msg(void * arg) {
 
 void *recv_msg(void *arg) {
 	Client *client = (Client *)arg;
+	SOCKET sock = client->sock;
+	struct sockaddr_in clientaddr = client->clientaddr;
 
 	while(1) {
 		// 데이터 받기
 		buf[0] = '\0';
 
-		client->addrlen = sizeof(client->clientaddr);
-		int retval = recvfrom(client->sock, buf, BUFSIZE, 0,
-			(struct sockaddr *)&client->clientaddr, &client->addrlen);
+		socklen_t addrlen = sizeof(clientaddr);
+		int retval = recvfrom(sock, buf, BUFSIZE, 0,
+			(struct sockaddr *)&clientaddr, &addrlen);
 		if (retval == SOCKET_ERROR) {
 			err_display("recvfrom()");
 			break;
@@ -76,7 +80,7 @@ int main(int argc, char *argv[])
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	retval = bind(client->sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+	retval = bind(client.sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("bind()");
 
 	// 클라이언트와 데이터 통신
@@ -87,6 +91,6 @@ int main(int argc, char *argv[])
 	pthread_join(recvT, NULL);
 
 	// 소켓 닫기
-	close(sock);
+	close(client.sock);
 	return 0;
 }
