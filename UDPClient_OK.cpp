@@ -14,9 +14,6 @@ typedef struct Server
 
 void *send_msg(void * arg) {
 	Server *server = (Server *)arg;
-	SOCKET sock = server->sock;
-	struct sockaddr_in serveraddr = server->serveraddr;
-	struct sockaddr_in peeraddr = server->peeraddr;
 
 	while(1) {
 		char ch[2];
@@ -27,10 +24,10 @@ void *send_msg(void * arg) {
 		printf("client: %s\n", buf);
 
 		int len = (int)strlen(buf);
-
+		
 		// 데이터 보내기
-		int retval = sendto(sock, buf, len, 0,
-			(struct sockaddr *)&peeraddr, sizeof(peeraddr));
+		int retval = sendto(server->sock, buf, len, 0,
+			(struct sockaddr *)&server->serveraddr, sizeof(server->serveraddr));
 		if (retval == SOCKET_ERROR) {
 			err_display("sendto()");
 			break;
@@ -42,23 +39,20 @@ void *send_msg(void * arg) {
 
 void *recv_msg(void *arg) {
 	Server *server = (Server *)arg;
-	SOCKET sock = server->sock;
-	struct sockaddr_in serveraddr = server->serveraddr;
-	struct sockaddr_in peeraddr = server->peeraddr;
 
 	while(1) {
 		// 데이터 받기
 		buf[0] = '\0';
 
-		socklen_t addrlen = sizeof(peeraddr);
-		int retval = recvfrom(sock, buf, BUFSIZE, 0,
-			(struct sockaddr *)&peeraddr, &addrlen);
+		socklen_t addrlen = sizeof(server->peeraddr);
+		int retval = recvfrom(server->sock, buf, BUFSIZE, 0,
+			(struct sockaddr *)&server->peeraddr, &addrlen);
 		if (retval == SOCKET_ERROR) {
 			err_display("recvfrom()");
 			break;
 		}
 
-		if (memcmp(&peeraddr, &serveraddr, sizeof(peeraddr))) { // 데이터를 받은 주소와 서버의 주소를 비교
+		if (memcmp(&server->peeraddr, &server->serveraddr, sizeof(server->peeraddr))) { // 데이터를 받은 주소와 서버의 주소를 비교
 			printf("[오류] 잘못된 데이터입니다!\n");
 			break;
 		}
