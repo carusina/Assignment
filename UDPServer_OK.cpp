@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
 	pthread_t recvT;
 
 	// 소켓 생성
-	client->sock = socket(AF_INET, SOCK_DGRAM, 0);
-	if (client->sock == INVALID_SOCKET) err_quit("socket()");
+	client.sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (client.sock == INVALID_SOCKET) err_quit("socket()");
 
 	// bind()
 	struct sockaddr_in serveraddr;
