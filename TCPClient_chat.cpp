@@ -10,7 +10,6 @@ typedef struct Server
 	SOCKET server_sock;
 };
 
-/*
 void *send_msg(void * arg) {
 	Server *server = (Server *)arg;
 	SOCKET sock = server->server_sock;
@@ -41,40 +40,6 @@ void *send_msg(void * arg) {
 	}
 	pthread_exit(NULL);
 }
-*/
-
-void *send_msg(void * arg) {
-	Server *server = (Server *)arg;
-	SOCKET sock = server->server_sock;
-
-	while(1) {
-		// 데이터 입력
-		// printf("\n[보낼 데이터] ");
-		char ch[2];
-		buf[0] = '\0';
-		while((ch[0] = getch()) != '\n') {
-			strcat(buf, ch);
-		}
-		printf("client: %s\n", buf);
-
-		// '\n' 문자 제거
-		int len = (int)strlen(buf);
-		// if (buf[len - 1] == '\n')
-		// 	buf[len - 1] = '\0';
-		// if (strlen(buf) == 0)
-		// 	break;
-
-		// 데이터 보내기
-		int retval = send(sock, buf, len, 0); // 클라이언트에게 retval byte만큼의 buf를 전달
-											  // 보낸 데이터의 byte 리턴
-		if (retval == SOCKET_ERROR) {
-			err_display("send()");
-			break;
-		}
-	}
-	pthread_exit(NULL);
-}
-
 
 void *recv_msg(void *arg) {
 	Server *server = (Server *)arg;
@@ -82,7 +47,6 @@ void *recv_msg(void *arg) {
 
 	while(1) {
 		// 데이터 받기
-		buf[0] = '\0';
 		int retval = recv(sock, buf, BUFSIZE, 0); // 클라이언트으로 부터 촤대 BUFSIZE byte만큼의 데이터를 받아 buf에 저장
 												  // 받은 데이터의 byte 리턴
 		if (retval == SOCKET_ERROR) {
@@ -129,44 +93,6 @@ int main(int argc, char *argv[])
 	pthread_t recvT;
 
 	// 서버와 데이터 통신
-	// while (1) {
-	// 	// 데이터 입력
-	// 	printf("\n[보낼 데이터] ");
-	// 	if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
-	// 		break;
-
-	// 	// '\n' 문자 제거
-	// 	len = (int)strlen(buf);
-	// 	if (buf[len - 1] == '\n')
-	// 		buf[len - 1] = '\0';
-	// 	if (strlen(buf) == 0)
-	// 		break;
-
-	// 	// 데이터 보내기
-	// 	retval = send(sock, buf, (int)strlen(buf), 0); // 서버에게 buf byte만큼의 buf를 전달
-    //                                                    // 보낸 데이터의 byte 리턴
-	// 	if (retval == SOCKET_ERROR) {
-	// 		err_display("send()");
-	// 		break;
-	// 	}
-	// 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
-
-	// 	// 데이터 받기
-	// 	retval = recv(sock, buf, retval, MSG_WAITALL); // 서버로 부터 촤대 retval byte만큼의 데이터를 받아 buf에 저장
-    //                                                    // 받은 데이터의 byte 리턴
-	// 	if (retval == SOCKET_ERROR) {
-	// 		err_display("recv()");
-	// 		break;
-	// 	}
-	// 	else if (retval == 0)
-	// 		break;
-
-	// 	// 받은 데이터 출력
-	// 	buf[retval] = '\0';
-	// 	printf("[TCP 클라이언트] %d바이트를 받았습니다.\n", retval);
-	// 	printf("[받은 데이터] %s\n", buf);
-	// }
-
 	pthread_create(&sendT, NULL, send_msg, (void *)&server);
 	pthread_create(&recvT, NULL, recv_msg, (void *)&server);
 
