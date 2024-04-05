@@ -9,41 +9,11 @@ typedef struct Client
 	SOCKET client_sock;
 };
 
-// void *send_msg(void * arg) {
-// 	Client *client = (Client *)arg;
-// 	SOCKET sock = client->client_sock;
-
-// 	while(1) {
-// 		// 데이터 입력
-// 		// printf("\n[보낼 데이터] ");
-// 		if (fgets(buf, BUFSIZE + 1, stdin) == NULL)
-// 			break;
-
-// 		// '\n' 문자 제거
-// 		int len = (int)strlen(buf);
-// 		if (buf[len - 1] == '\n')
-// 			buf[len - 1] = '\0';
-// 		if (strlen(buf) == 0)
-// 			break;
-
-// 		// 데이터 보내기
-// 		int retval = send(sock, buf, len, 0); // 클라이언트에게 retval byte만큼의 buf를 전달
-// 											  // 보낸 데이터의 byte 리턴
-// 		if (retval == SOCKET_ERROR) {
-// 			err_display("send()");
-// 			break;
-// 		}
-// 	}
-// 	pthread_exit(NULL);
-// }
-
 void *send_msg(void * arg) {
 	Client *client = (Client *)arg;
 	SOCKET sock = client->client_sock;
 
 	while(1) {
-		// 데이터 입력
-		// printf("\n[보낼 데이터] ");
 		char ch[2];
 		buf[0] = '\0';
 		while((ch[0] = getch()) != '\n') {
@@ -53,10 +23,6 @@ void *send_msg(void * arg) {
 
 		// '\n' 문자 제거
 		int len = (int)strlen(buf);
-		// if (buf[len - 1] == '\n')
-		// 	buf[len - 1] = '\0';
-		// if (strlen(buf) == 0)
-		// 	break;
 
 		// 데이터 보내기
 		int retval = send(sock, buf, len, 0); // 클라이언트에게 retval byte만큼의 buf를 전달
@@ -142,30 +108,6 @@ int main(int argc, char *argv[])
 			addr, ntohs(clientaddr.sin_port));
 
 		// 클라이언트와 데이터 통신
-		// while (1) {
-		// 	// 데이터 받기
-		// 	retval = recv(client_sock, buf, BUFSIZE, 0); // 클라이언트으로 부터 촤대 BUFSIZE byte만큼의 데이터를 받아 buf에 저장
-        //                                                  // 받은 데이터의 byte 리턴
-		// 	if (retval == SOCKET_ERROR) {
-		// 		err_display("recv()");
-		// 		break;
-		// 	}
-		// 	else if (retval == 0)
-		// 		break;
-
-		// 	// 받은 데이터 출력
-		// 	buf[retval] = '\0'; // 받은 데이터의 끝을 명시
-		// 	printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
-
-		// 	// 데이터 보내기
-		// 	retval = send(client_sock, buf, retval, 0); // 클라이언트에게 retval byte만큼의 buf를 전달
-        //                                                 // 보낸 데이터의 byte 리턴
-		// 	if (retval == SOCKET_ERROR) {
-		// 		err_display("send()");
-		// 		break;
-		// 	}
-		// }
-
 		pthread_create(&sendT, NULL, send_msg, (void *)&client);
 		pthread_create(&recvT, NULL, recv_msg, (void *)&client);
 
