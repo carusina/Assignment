@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
 	if (argc > 1) SERVERIP = argv[1];
 
 	// 소켓 생성
-	server->sock = socket(AF_INET, SOCK_DGRAM, 0); // 인터넷 주소 체계의 비연결형 서비스
+	server.sock = socket(AF_INET, SOCK_DGRAM, 0); // 인터넷 주소 체계의 비연결형 서비스
 												  // 성공적으로 생성시 소켓 디스크립터 반환
-	if (sock == INVALID_SOCKET) err_quit("socket()");
+	if (server.sock == INVALID_SOCKET) err_quit("socket()");
 
 	// 소켓 주소 구조체 초기화
 	memset(&server.serveraddr, 0, sizeof(server.serveraddr)); // serveraddr 초기화
@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 	server.serveraddr.sin_port = htons(SERVERPORT);
 
 	// 클라이언트와 데이터 통신
-	pthread_create(&sendT, NULL, send_msg, (void *)&client);
-	pthread_create(&recvT, NULL, recv_msg, (void *)&client);
+	pthread_create(&sendT, NULL, send_msg, (void *)&server);
+	pthread_create(&recvT, NULL, recv_msg, (void *)&server);
 
 	pthread_join(sendT, NULL);
 	pthread_join(recvT, NULL);
