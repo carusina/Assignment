@@ -20,7 +20,7 @@ void *send_msg(void * arg) {
 		while((ch[0] = getch()) != '\n') {
 			strcat(buf, ch);
 		}
-		printf("server: %s\n", buf);
+		printf("client: %s\n", buf);
 
 		// '\n' 문자 제거
 		int len = (int)strlen(buf);
