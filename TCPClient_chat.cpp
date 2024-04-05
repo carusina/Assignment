@@ -42,6 +42,7 @@ void *recv_msg(void *arg) {
 
 	while(1) {
 		// 데이터 받기
+		buf[0] = '\0';
 		int retval = recv(sock, buf, BUFSIZE, 0); // 서버으로 부터 촤대 BUFSIZE byte만큼의 데이터를 받아 buf에 저장
 												  // 받은 데이터의 byte 리턴
 		if (retval == SOCKET_ERROR) {
