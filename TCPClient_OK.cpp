@@ -1,5 +1,4 @@
 #include "Common.h"
-#include <pthread.h>
 
 char *SERVERIP = (char *)"127.0.0.1";
 #define SERVERPORT 9000
