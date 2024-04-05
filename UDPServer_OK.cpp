@@ -26,8 +26,8 @@ void *send_msg(void * arg) {
 		int len = (int)strlen(buf);
 
 		// 데이터 보내기
-		int retval = sendto(client.sock, buf, retval, 0,
-			(struct sockaddr *)&client.clientaddr, sizeof(client.clientaddr));
+		int retval = sendto(client->sock, buf, len, 0,
+			(struct sockaddr *)&client->clientaddr, sizeof(client->clientaddr));
 		if (retval == SOCKET_ERROR) {
 			err_display("sendto()");
 			break;
@@ -44,9 +44,9 @@ void *recv_msg(void *arg) {
 		// 데이터 받기
 		buf[0] = '\0';
 
-		client.addrlen = sizeof(client.clientaddr);
-		int retval = recvfrom(client.sock, buf, BUFSIZE, 0,
-			(struct sockaddr *)&client.clientaddr, &client.addrlen);
+		client->addrlen = sizeof(client->clientaddr);
+		int retval = recvfrom(client->sock, buf, BUFSIZE, 0,
+			(struct sockaddr *)&client->clientaddr, &client->addrlen);
 		if (retval == SOCKET_ERROR) {
 			err_display("recvfrom()");
 			break;
@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
 	pthread_t recvT;
 
 	// 소켓 생성
-	client.sock = socket(AF_INET, SOCK_DGRAM, 0);
-	if (client.sock == INVALID_SOCKET) err_quit("socket()");
+	client->sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (client->sock == INVALID_SOCKET) err_quit("socket()");
 
 	// bind()
 	struct sockaddr_in serveraddr;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	retval = bind(client.sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
+	retval = bind(client->sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr));
 	if (retval == SOCKET_ERROR) err_quit("bind()");
 
 	// 클라이언트와 데이터 통신
