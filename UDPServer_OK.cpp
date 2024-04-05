@@ -12,8 +12,6 @@ typedef struct Client
 
 void *send_msg(void * arg) {
 	Client *client = (Client *)arg;
-	SOCKET sock = client->sock;
-	struct sockaddr_in clientaddr = client->clientaddr;
 
 
 	while(1) {
@@ -26,10 +24,10 @@ void *send_msg(void * arg) {
 
 		// '\n' 문자 제거
 		int len = (int)strlen(buf);
-
+		
 		// 데이터 보내기
-		int retval = sendto(sock, buf, len, 0,
-			(struct sockaddr *)&clientaddr, sizeof(clientaddr));
+		int retval = sendto(client->sock, buf, len, 0,
+			(struct sockaddr *)&client->clientaddr, sizeof(client->clientaddr));
 		if (retval == SOCKET_ERROR) {
 			err_display("sendto()");
 			break;
@@ -41,16 +39,14 @@ void *send_msg(void * arg) {
 
 void *recv_msg(void *arg) {
 	Client *client = (Client *)arg;
-	SOCKET sock = client->sock;
-	struct sockaddr_in clientaddr = client->clientaddr;
 
 	while(1) {
 		// 데이터 받기
 		buf[0] = '\0';
 
-		socklen_t addrlen = sizeof(clientaddr);
-		int retval = recvfrom(sock, buf, BUFSIZE, 0,
-			(struct sockaddr *)&clientaddr, &addrlen);
+		socklen_t addrlen = sizeof(client->clientaddr);
+		int retval = recvfrom(client->sock, buf, BUFSIZE, 0,
+			(struct sockaddr *)&client->clientaddr, &addrlen);
 		if (retval == SOCKET_ERROR) {
 			err_display("recvfrom()");
 			break;
