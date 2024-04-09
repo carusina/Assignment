@@ -1,97 +1,52 @@
-#include <stdio.h>
-#include <pthread.h>
 #include <semaphore.h>
-
-sem_t semaphore;
+#include <pthread.h>
+#include <stdio.h>
 
 #define NUMTHREAD 4
 
-int sema = 1;
 int num = 1;
 int max = 100;
 
+sem_t semaphore;
+
+
 void multi(int st) {
+    printf("func%d start\n", st);
     for(int i = max/NUMTHREAD; num < max+1 && i > 0; num++, i--) {
-        printf("func%d: %d * 3 = %d\n", st, num, num*3);
+        printf("%d * 3 = %d\t", num, num*3);
         // printf("%d  ", num);
     }
+    printf("\nfunc%d end\n", st);
 }
 
-void *func0(void *arg) {
-    if(sema != 0) {
-        sem_wait(&semaphore);
-        sema--;
-        multi(0);
-        sema++;
-        sem_post(&semaphore);
-    }
-    else {
-        while(sema == 0) {}
-        sem_wait(&semaphore);
-        sema--;
-        multi(0);
-        sema++;
-        sem_post(&semaphore);
-    }
-}
 
-void *func1(void *arg) {
-    if(sema != 0) {
-        sem_wait(&semaphore);
-        sema--;
-        multi(1);
-        sema++;
-        sem_post(&semaphore);
-    }
-    else {
-        while(sema == 0) {}
-        sem_wait(&semaphore);
-        sema--;
-        multi(1);
-        sema++;
-        sem_post(&semaphore);
-    }
+void *func0 (void *arg) {
+    sem_wait(&semaphore);
+    multi(0);
+    sem_post(&semaphore);
+    pthread_exit(NULL);
 }
-
-void *func2(void *arg) {
-    if(sema != 0) {
-        sem_wait(&semaphore);
-        sema--;
-        multi(2);
-        sema++;
-        sem_post(&semaphore);
-    }
-    else {
-        while(sema == 0) {}
-        sem_wait(&semaphore);
-        sema--;
-        multi(2);
-        sema++;
-        sem_post(&semaphore);
-    }
+void *func1 (void *arg) {
+    sem_wait(&semaphore);
+    multi(1);
+    sem_post(&semaphore);
+    pthread_exit(NULL);
 }
-
-void *func3(void *arg) {
-    if(sema != 0) {
-        sem_wait(&semaphore);
-        sema--;
-        multi(3);
-        sema++;
-        sem_post(&semaphore);
-    }
-    else {
-        while(sema == 0) {}
-        sem_wait(&semaphore);
-        sema--;
-        multi(3);
-        sema++;
-        sem_post(&semaphore);
-    }
+void *func2 (void *arg) {
+    sem_wait(&semaphore);
+    multi(2);
+    sem_post(&semaphore);
+    pthread_exit(NULL);
+}
+void *func3 (void *arg) {
+    sem_wait(&semaphore);
+    multi(3);
+    sem_post(&semaphore);
+    pthread_exit(NULL);
 }
 
 int main() {
     pthread_t t1, t2, t3, t4;
-
     sem_init(&semaphore, 0, 1);
 
     pthread_create(&t1, NULL, func0, NULL);
