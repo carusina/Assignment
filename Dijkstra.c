@@ -11,10 +11,10 @@ int max = 100;
 void multi(int st) {
     printf("func%d start\n", st);
     for(int i = max/NUMTHREAD; num < max+1 && i > 0; num++, i--) {
-        printf("%d * 3 = %d\n", num, num*3);
+        printf("%d * 3 = %d\t", num, num*3);
         // printf("%d  ", num);
     }
-    printf("func%d end\n", st);
+    printf("\nfunc%d end\n", st);
 }
 
 void *func0 (void *arg) {
