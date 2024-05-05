@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
 					packets_time[cnt] = time;
 					printf("\"%s\" is transmitted.\n", packets[cnt]);
 					cnt++;
+					sleep(3);
 					continue;
 				}
 
