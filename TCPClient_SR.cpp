@@ -49,6 +49,20 @@ int main(int argc, char *argv[])
     int Rseq = -1;
     int error = 1;
 	// 서버와 데이터 통신
+    for(; seq < 4; seq++) {
+        time++;
+        if(seq == 2) {
+            printf("\"%s\" is transmitted.\n", packets[seq]);
+            packets_sendT[seq] = time;
+            sleep(1);
+            continue;
+        }
+        retval = send(sock, packets[seq], (int)strlen(packets[seq]), 0);
+        packets_sendT[seq] = time;
+        printf("\"%s\" is transmitted.\n", packets[seq]);
+        sleep(1);
+    }
+
 	while (window[0] < 8) {
         time++;
         for(int i=0; i<4; i++) {
@@ -74,10 +88,6 @@ int main(int argc, char *argv[])
 
             if(is_nextseq == 1) {
                 printf("\"%s\" is received. ", recv_ack); 
-                if(window[0] > 7) {
-                    printf("\n");
-                    continue;
-                }
 
                 if(record_acks[0][0] != '\0') {
                     for(int i = 0; i < 3; i++) {
@@ -92,6 +102,11 @@ int main(int argc, char *argv[])
                 strcpy(record_acks[recordIndex++], recv_ack);
                 printf("\"%s\" is received and recorded.\n", recv_ack);
             }
+            
+            if(window[0] > 7) {
+                printf("\n");
+                continue;
+            }
         }
 
         if(packets_sendT[window[0]] != 0 && time-packets_sendT[window[0]] >= TIMEOUTINTERVER) {
@@ -103,18 +118,6 @@ int main(int argc, char *argv[])
 
             continue;
         }
-        
-        // 오류 가정 시작
-        if(seq == 2 && error == 1) {
-            packets_sendT[seq] = time;
-            printf("\"%s\" is transmitted.\n", packets[seq]);
-            seq++;
-            error = 0;
-
-            sleep(1);
-            continue;
-        }
-        // 오류 가정 끝
         
         if(seq <= window[WINSIZE-1] || seq == window[0]) {
             retval = send(sock, packets[seq], (int)strlen(packets[seq]), 0);
