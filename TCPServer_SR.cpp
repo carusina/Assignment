@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         int window[WINSIZE] = {0,1,2,3};
 
         char* packets[8] = {"packet 0", "packet 1", "packet 2", "packet 3", "packet 4", "packet 5", "packet 6", "packet 7"};
-		char buf[3][9];
+		char buf[3][9] = {'\0', '\0', '\0'};
 		int bufIndex = 0;
 
         char* acks[8] = {"ACK 0", "ACK 1", "ACK 2", "ACK 3", "ACK 4", "ACK 5", "ACK 6", "ACK 7"};
