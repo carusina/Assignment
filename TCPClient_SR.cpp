@@ -49,17 +49,14 @@ int main(int argc, char *argv[])
     int Rseq = -1;
     int error = 1;
 	// 서버와 데이터 통신
-	while (window[0] < 7) {
+	while (window[0] < 8) {
         time++;
         for(int i=0; i<4; i++) {
             if(window[i] == 9) window[i] = 0;
         }
         
-        // printf("\n%d\t%d\n", seq, window[WINSIZE-1]);
         if(seq > window[WINSIZE-1]) {
-            // printf("\n");   for(int i=0; i<4; i++) printf("%d, ", window[i]);   printf("\n");
-
-            retval = recv(sock, recv_ack, (int)strlen(acks[seq]), MSG_WAITALL);
+            retval = recv(sock, recv_ack, (int)strlen(acks[window[0]]), MSG_WAITALL);
             recv_ack[retval] = '\0';
 
             int is_nextseq = 0;
@@ -76,7 +73,11 @@ int main(int argc, char *argv[])
             acks_recvT[Rseq] = time;
 
             if(is_nextseq == 1) {
-                printf("\"%s\" is received. ", recv_ack);
+                printf("\"%s\" is received. ", recv_ack); 
+                if(window[0] > 7) {
+                    printf("\n");
+                    continue;
+                }
 
                 if(record_acks[0][0] != '\0') {
                     for(int i = 0; i < 3; i++) {
@@ -90,7 +91,6 @@ int main(int argc, char *argv[])
             else {
                 strcpy(record_acks[recordIndex++], recv_ack);
                 printf("\"%s\" is received and recorded.\n", recv_ack);
-                // continue;
             }
         }
 
@@ -101,14 +101,6 @@ int main(int argc, char *argv[])
             packets_sendT[window[0]] = time;
             printf("\"%s\" is transmitted.\n", packets[window[0]]);
 
-            // if(record_acks[0][0] != '\0') {
-            //     for(int i = 0; i < 3; i++) {
-            //         if(record_acks[i][0] != '\0') {
-            //             for(int j = 0; j < WINSIZE; j++) window[j] ++;
-            //             record_acks[i][0] = '\0';
-            //         }
-            //     }
-            // }
             continue;
         }
         
