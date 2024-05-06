@@ -3,7 +3,7 @@
 char *SERVERIP = (char *)"127.0.0.1";
 #define SERVERPORT 9000
 #define BUFSIZE    512
-#define WINSIZE    4
+#define WINSIZE 4
 #define TIMEOUTINTERVER 5
 
 int main(int argc, char *argv[])
@@ -31,70 +31,84 @@ int main(int argc, char *argv[])
 	// 데이터 통신에 사용할 변수
 	char buf[BUFSIZE + 1];
 	int len;
+    
+    int window[4] = {0,1,2,3};
 
+    char* packets[8] = {"packet 0", "packet 1", "packet 2", "packet 3", "packet 4", "packet 5", "packet 6", "packet 7"};
+    int packets_sendT[8] = {0,0,0,0,0,0,0,0};
+
+    char* acks[8] = {"ACK 0", "ACK 1", "ACK 2", "ACK 3", "ACK 4", "ACK 5", "ACK 6", "ACK 7"};
+    int ack_recvT = 0;
+
+    char recv_ack[6];
+    char last_ack[6] = "NULL";
+
+    int time = 0;
+    int seq = 0;
+    int is_dupl = 0;
 	// 서버와 데이터 통신
-		int time = 0;
-		int window[WINSIZE] = {0,1,2,3};
-		char* packets[8] = {"packet 0", "packet 1", "packet 2", "packet 3", "packet 4", "packet 5", "packet 6", "packet 7"};
-		int packets_time[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-		char recv_ack[6];
-		char ack[6];
-	
-		int cnt = 0;
-		int first = 1; // 오류 가정을 위함
-		int ack_repeat = 0; // ack 반복 확인
-		while(cnt < 8) {
-			time++;
-			
-			int NotTimeOver = 1; // 타임 오버 확인
-			if(cnt >= 4) {
-				if(time - packets_time[window[0]] >= TIMEOUTINTERVER) {
-						printf("%s is timeout.\n", packets[window[0]]);
-						cnt = window[0];
-						NotTimeOver = 0;
-						first = 0;
-					}
+    for(; seq < 4; seq++) {
+        time++;
+        if(seq == 2) {
+            printf("\"%s\" is transmitted.\n", packets[seq]);
+            packets_sendT[seq] = time;
+            sleep(1);
+            continue;
+        }
+        retval = send(sock, packets[seq], (int)strlen(packets[seq]), 0);
+        packets_sendT[seq] = time;
+        printf("\"%s\" is transmitted.\n", packets[seq]);
+        sleep(1);
+    }
+    
+	while (window[0] < 8) {
+        time++;
+        for(int i=0; i<4; i++) {
+            if(window[i] == 9) window[i] = 0;
+        }
 
-				if(NotTimeOver) {
-					retval = recv(sock, recv_ack, 5, MSG_WAITALL);
-					recv_ack[retval] = '\0';
-					
-					if(strcmp(ack, recv_ack) == 0) {
-						if(ack_repeat == 0) {
-							printf("\"%s\" is received and ignored.\n", ack);
-							ack_repeat = 1;
-						}
-					}
-					else {
-						printf("\"%s\" is received. ", recv_ack);
-						strcpy(ack, recv_ack);
-						ack_repeat = 0;
+        if(seq >= window[WINSIZE-1]) {
+            retval = recv(sock, recv_ack, (int)strlen(acks[window[0]]), MSG_WAITALL);
+            recv_ack[retval] = '\0';
 
-						for(int i = 0; i < WINSIZE; i++) {
-							window[i]++;
-						}
-					}
-				}
-			}
-			
-			if(cnt <= window[WINSIZE-1]) {
-				// 오류 가정
-				if(cnt == 2 && first == 1) {
-					packets_time[cnt] = time;
-					printf("\"%s\" is transmitted.\n", packets[cnt]);
-					cnt++;
-					sleep(3);
-					continue;
-				}
+            if(strcmp(recv_ack, last_ack) != 0) {
+                printf("\"%s\" is received. ", recv_ack);
+                strcpy(last_ack, recv_ack);
+                ack_recvT = time;
+                is_dupl = 0;
 
-				retval = send(sock, packets[cnt], (int)strlen(packets[cnt]), 0);
-				packets_time[cnt] = time;
-				printf("\"%s\" is transmitted.\n", packets[cnt]);
-				cnt++;
-			}
+                for(int i = 0; i < WINSIZE; i++) window[i]++;
+                if(window[0] > 4) {
+                    printf("\n");
+                    sleep(1);
+                    continue;
+                }
+            }
+            else if(is_dupl == 0) {
+                printf("\"%s\" is received and ignored.\n", recv_ack);
+                is_dupl = 1;
+            }
+        }
 
-			sleep(3);
-		}
+        if(packets_sendT[window[0]] != 0 && time-packets_sendT[window[0]] >= TIMEOUTINTERVER) {
+            printf("%s is timeout.\n", packets[window[0]]);
+            seq = window[0];
+        }
+        
+		if(seq <= window[WINSIZE-1] || seq == window[0]) {
+            if(seq == 8) {
+                sleep(1);
+                continue;
+            }
+
+            retval = send(sock, packets[seq], (int)strlen(packets[seq]), 0);
+            packets_sendT[seq] = time;
+            printf("\"%s\" is transmitted.\n", packets[seq]);
+            seq++;
+        }
+
+        sleep(1);
+	}
 
 	// 소켓 닫기
 	close(sock);
