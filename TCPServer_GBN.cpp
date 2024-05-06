@@ -2,8 +2,7 @@
 
 #define SERVERPORT 9000
 #define BUFSIZE    512
-#define WINSIZE    4
-#define TIMEOUTINTERVER 5
+#define WINSIZE 4
 
 int main(int argc, char *argv[])
 {
@@ -48,45 +47,61 @@ int main(int argc, char *argv[])
                                                                       // 알아볼 수 있게 변환해서 저장
 		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			addr, ntohs(clientaddr.sin_port));
+        
+        int window[WINSIZE] = {0,1,2,3};
 
-		int time = 0;
-		int window[WINSIZE] = {0,1,2,3};
-		char* packets[8] = {"packet 0", "packet 1", "packet 2", "packet 3", "packet 4", "packet 5", "packet 6", "packet 7"};
-		int is_dropped[8] = {0,0,0,0,0,0,0,0};
-		char recv_packet[9];
-		char* acks[8] = {"ACK 0", "ACK 1", "ACK 2", "ACK 3", "ACK 4", "ACK 5", "ACK 6", "ACK 7"};
+        char* packets[8] = {"packet 0", "packet 1", "packet 2", "packet 3", "packet 4", "packet 5", "packet 6", "packet 7"};
+        int is_dropped[8] = {0,0,0,0,0,0,0,0};
 
+        char* acks[8] = {"ACK 0", "ACK 1", "ACK 2", "ACK 3", "ACK 4", "ACK 5", "ACK 6", "ACK 7"};
 
-		int cnt = 0;
-		int p_drop = 0;
+        char recv_packet[9];
+
+        int time = 0;
+        int seq = 0;
+        int is_re = 0;
 		// 클라이언트와 데이터 통신
-		while (1) {
-			// 데이터 받기
-			retval = recv(client_sock, recv_packet, BUFSIZE, 0); // 클라이언트으로 부터 촤대 BUFSIZE byte만큼의 데이터를 받아 buf에 저장
-                                                         		// 받은 데이터의 byte 리턴
-			recv_packet[retval] = '\0';
+		while (window[0] < 8) {
+            time++;
+            for(int i=0; i<4; i++) {
+                if(window[i] == 9) window[i] = 0;
+            }
 
-			if(strcmp(recv_packet, packets[cnt]) == 0) {
-				if(is_dropped[cnt] == 1) {
-					printf("\"%s\" is received and delivered. ", recv_packet);
-				}
-				else {
-					printf("\"%s\" is received. ", recv_packet);
-				}
-				retval = send(client_sock, acks[cnt], (int)strlen(acks[cnt]), 0);
-				printf("\"%s\" is transmitted.\n", acks[cnt]);
-				cnt++;
-			}
-			else {
-				printf("\"%s\" is received and dropped. ", recv_packet);
-				retval = send(client_sock, acks[cnt-1], (int)strlen(acks[cnt]), 0);
-				printf("\"%s\" is retransmitted.\n", acks[cnt-1]);
-				is_dropped[cnt+p_drop] = 1;
-				is_dropped[cnt+p_drop+1] = 1;
-				p_drop++;
-			}
-			sleep(3);
-			if(cnt >= 8) break;
+			retval = recv(client_sock, recv_packet, (int)strlen(packets[seq]), 0);
+            recv_packet[retval] = '\0';
+
+            if(strcmp(recv_packet, packets[seq]) != 0) {
+                printf("\"%s\" is received and dropped. ", recv_packet);
+                for(int i = 0; i < 8; i++) {
+                    if(strcmp(packets[i], recv_packet) == 0) {
+                        is_dropped[i] = 1;
+                        break;
+                    }
+                }
+                retval = send(client_sock, acks[seq-1], (int)strlen(acks[seq-1]), 0);
+                printf("\"%s\" is retransmitted.\n", acks[seq-1]);
+                is_re = 1;
+
+                sleep(1);
+                continue;
+            }
+
+            for(int i = 0; i < WINSIZE; i++) window[i]++;
+            if(is_re == 1 || is_dropped[seq] == 1) {
+                printf("\"%s\" is received and delivered. ", recv_packet);
+                is_re = 0;
+                is_dropped[seq] = 0;
+            }
+            else {
+                printf("\"%s\" is received. ", recv_packet);
+            }
+
+            retval = send(client_sock, acks[seq], (int)strlen(acks[seq]), 0);
+            printf("\"%s\" is transmitted.\n", acks[seq]);
+
+            seq++;
+
+            sleep(1);
 		}
 
 		// 소켓 닫기
