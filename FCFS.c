@@ -39,10 +39,16 @@ void scheduling(struct List* process) {
 
     struct List* cur = head->next;
     struct List* prev = head;
-    while(cur != NULL && process->priority > cur->priority) {
-        prev = cur;
-        cur = cur->next;
+    while(cur != NULL) {
+        if(process->priority > cur->priority) {
+            prev = cur;
+            cur = cur->next;
+        }
     }
+
+    // while(cur != NULL && process->priority > cur->priority) {
+    //     prev = cur;
+    //     cur = cur->next;
     prev->next = process;
     process->next = cur;
 }
