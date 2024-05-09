@@ -7,6 +7,7 @@
 int current_time = 0;
 int is_finish = 0;
 int is_timed = 1;
+int is_scheduling = 0;
 
 int arrive_time[ProcessNum] = {0,1,2,3,4};
 int need_time[ProcessNum] = {10,28,6,4,14};
@@ -24,13 +25,9 @@ struct List {
 struct List* head = NULL;
 struct List* tail = NULL;
 
-
-// struct Args {
-//     struct List* process;
-//     int num;
-// };
-
 void scheduling(struct List* process) {
+    while(is_scheduling != process->num) {}
+
     if(head == NULL) {
         head = process;
         return;
@@ -39,16 +36,11 @@ void scheduling(struct List* process) {
 
     struct List* cur = head->next;
     struct List* prev = head;
-    while(cur != NULL) {
-        if(process->priority > cur->priority) {
-            prev = cur;
-            cur = cur->next;
-        }
-    }
 
-    // while(cur != NULL && process->priority > cur->priority) {
-    //     prev = cur;
-    //     cur = cur->next;
+    while(cur != NULL && process->priority > cur->priority) {
+        prev = cur;
+        cur = cur->next;
+    }
     prev->next = process;
     process->next = cur;
 }
@@ -57,6 +49,7 @@ void* func(void* args) {
     struct List* input = (struct List*)args;
 
     scheduling(input);
+    is_scheduling++;
 
     while(running_time[input->num] < need_time[input->num]) {
         if(input == head) {
@@ -67,10 +60,14 @@ void* func(void* args) {
             current_time++;
             is_timed = 1;
         }
+        // else scheduling(input);
         while(is_finish == 0 && is_timed == 1) {}
     }
     end_time[input->num] = current_time;
     head = input->next;
+
+    free(input);
+    pthread_exit(NULL);
 }
 
 int main() {
