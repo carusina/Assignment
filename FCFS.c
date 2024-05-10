@@ -28,14 +28,8 @@ struct List* tail = NULL;
 void scheduling(struct List* process) {
     while(is_scheduling != process->num) {}
 
-    if(head == NULL) {
-        head = process;
-        return;
-    }
-    // else tail->next = process;
-
-    struct List* cur = head->next;
     struct List* prev = head;
+    struct List* cur = head->next;
 
     while(cur != NULL && process->priority > cur->priority) {
         prev = cur;
@@ -43,25 +37,23 @@ void scheduling(struct List* process) {
     }
     prev->next = process;
     process->next = cur;
+
+    is_scheduling++;
 }
 
 void* func(void* args) {
     struct List* input = (struct List*)args;
 
-    scheduling(input);
-    is_scheduling++;
-
     while(running_time[input->num] < need_time[input->num]) {
+        while(is_timed == 1 && is_finish == 0) {}
         if(input == head) {
-            if(start_time[input->num] == 0) start_time[input->num] = current_time;
+            if(start_time[input->num] == -1) start_time[input->num] = current_time;
 
             printf("P%d: %d X %d = %d\n", input->num+1, running_time[input->num]+1, input->num+1, (running_time[input->num]+1)*(input->num+1));
             running_time[input->num]++;
             current_time++;
             is_timed = 1;
         }
-        // else scheduling(input);
-        while(is_finish == 0 && is_timed == 1) {}
     }
     end_time[input->num] = current_time;
     head = input->next;
@@ -71,21 +63,38 @@ void* func(void* args) {
 }
 
 int main() {
+    for(int i = 0; i < ProcessNum; i++) start_time[i] = -1;
+
     pthread_t tid[ProcessNum];
     int num = 0;
 
     while(current_time <= arrive_time[ProcessNum-1]) {
-        if(current_time == arrive_time[num]) {
+        if(current_time == arrive_time[num] && is_timed == 1) {
             struct List* newp = (struct List*)malloc(sizeof(struct List));
             newp->priority = current_time;
             newp->next = NULL;
             newp->num = num;
+            if(num == 0) head = newp;
             
+            scheduling(newp);
             pthread_create(&tid[num], NULL, func, (void*)newp);
+            
             num++;
+            is_timed = 0;
         }
-        is_timed = 0;
     }
     is_finish = 1;
     for(int i = 0; i < num; i++) pthread_join(tid[i], NULL);
+    for(int i = 0; i < num; i++) printf("P%d (%d-%d)\n", i+1, start_time[i], end_time[i]);
+
+    int sum_return_time = 0;
+    int sum_waiting_time = 0;
+    for(int i = 0; i < ProcessNum; i++) {
+        int return_time = end_time[i]-arrive_time[i];
+        int waiting_time = end_time[i]-running_time[i]-arrive_time[i];
+        printf("P%d 반환시간: %2d 대기시간: %2d\n", i+1, return_time, waiting_time);
+        sum_return_time += return_time;
+        sum_waiting_time += waiting_time;
+    }
+    printf("평균 반환시간: %lf 평균 대기시간: %lf\n", (double)sum_return_time/ProcessNum, (double)sum_waiting_time/ProcessNum);
 }
