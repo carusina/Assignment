@@ -10,7 +10,7 @@ void char_as_binary(char input, char* result) {
 }
 
 void char_array_as_binary(char* input, int N, char* result) {
-    char sum[9] = "00000000\0";
+    char sum[8] = "00000000";
     char temp[8];
 
     for(int i = 0; i < N; i++) {
@@ -77,10 +77,10 @@ void Printf_char_as_binary(char input)
 
 
 int main() {
-    char str[1] = "a";
+    char str[2] = "ab";
     char result[9];
 
-    char_array_as_binary(str,1, result);
+    char_array_as_binary(str, 2, result);
 
 
     Printf_char_as_binary('a');
