@@ -2,7 +2,7 @@
 
 #define SERVERPORT 9000
 #define BUFSIZE    512
-#define WINSIZE 4
+#define WINSIZE 5
 #define MaxPacket 5
 
 int main(int argc, char *argv[])
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 		// 클라이언트와 데이터 통신
 		while (window[0] < MaxPacket) {
             time++;
-            for(int i=0; i<4; i++) {
+            for(int i=0; i < WINSIZE; i++) {
                 if(window[i] == MaxPacket+1) window[i] = 0;
             }
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
             printf("%s is received ", packet);
 
             char_array_as_binary(recv_contents, (int)strlen(recv_contents), checksum);
-            // printf("\nchecksum: %s, recv_checksum: %s\n",checksum, recv_checksum);
+
             if(strcmp(checksum, recv_checksum) == 0) printf("and there is no error. ");
             else printf("and there is error. ");
 
