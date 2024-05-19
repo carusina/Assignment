@@ -3,7 +3,7 @@
 char *SERVERIP = (char *)"127.0.0.1";
 #define SERVERPORT 9000
 #define BUFSIZE    512
-#define WINSIZE 4
+#define WINSIZE 5
 #define TIMEOUTINTERVER 15
 #define MaxPacket 5
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     char acked_seqNum[99];
     int is_dupl = 0;
 	// 서버와 데이터 통신
-    for(; seq < 4; seq++) {
+    for(; seq < 5; seq++) {
         time++;
 
         int index = 10;
