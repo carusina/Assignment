@@ -85,12 +85,11 @@ void* func(void* args) {
         while(is_finish == 0 && is_timed == 1) {}
         if(input == head) {
             if(start_time[input->num] == -1) start_time[input->num] = current_time;
-            printf("P%d: %d X %d = %d \t curT: %d\n", input->num+1, running_time[input->num]+1, input->num+1, (running_time[input->num]+1)*(input->num+1), current_time);
+            printf("P%d: %d X %d = %d\n", input->num+1, running_time[input->num]+1, input->num+1, (running_time[input->num]+1)*(input->num+1));
             running_time[input->num]++;
             cnt++;
             current_time++;
             if(current_time-start_time[input->num] >= RobinTime[input->priority]) {
-                printf("curT: %d / stT: %d / P%d's Prio: %d\n\n", current_time, start_time[input->num], input->num+1, input->priority);
                 sprintf(buf, "P%d (%d-%d)\n", input->num+1, start_time[input->num], current_time);
                 strcat(gant, buf);
                 scheduling(input, 0, cnt);
