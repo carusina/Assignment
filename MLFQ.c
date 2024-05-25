@@ -43,14 +43,8 @@ void scheduling(struct List* process, int is_first, int cnt) {
             return;
         }
 
-        struct List* prev = head;
-        struct List* cur = head->next;
-        while(cur != NULL && process->priority > cur->priority) {
-            prev = cur;
-            cur = cur->next;
-        }
-        prev->next = process;
-        process->next = cur;
+        process->next = head;
+        head = process;
 
         is_scheduling++;
         is_in = 0;
@@ -58,12 +52,10 @@ void scheduling(struct List* process, int is_first, int cnt) {
     else {
         while(is_in == 1) {}
 
-        printf("curT: %d / stT: %d / P%d's Prio: %d\n", current_time+1, start_time[process->num], process->num+1, process->priority);
         start_time[process->num] = -1;
-        if(need_time[process->num]-running_time[process->num] <= 1) process->priority = 0;
+        if(need_time[process->num]-running_time[process->num] <= 1 || (process->next == NULL && cnt != 1)) process->priority = 0;
         else if(cnt == 1 || need_time[process->num]-running_time[process->num] <= 2) process->priority = 1;
         else process->priority = 2;
-        printf("P%d's Prio: %d\n\n", process->num+1, process->priority);
 
         struct List* head_next = process->next;
         struct List* prev = process;
@@ -82,12 +74,6 @@ void scheduling(struct List* process, int is_first, int cnt) {
         if(is_change == 1) {
             head = head_next;
         }
-
-        if(process != head) {
-            sprintf(buf, "P%d (%d-%d)\n", process->num+1, start_time[process->num], current_time);
-            strcat(gant, buf);
-            start_time[process->num] = -1;
-        }
     }
 }
 
@@ -102,17 +88,23 @@ void* func(void* args) {
             printf("P%d: %d X %d = %d \t curT: %d\n", input->num+1, running_time[input->num]+1, input->num+1, (running_time[input->num]+1)*(input->num+1), current_time);
             running_time[input->num]++;
             cnt++;
-            if(current_time-start_time[input->num] >= RobinTime[input->priority]) scheduling(input, 0, cnt);
             current_time++;
+            if(current_time-start_time[input->num] >= RobinTime[input->priority]) {
+                printf("curT: %d / stT: %d / P%d's Prio: %d\n\n", current_time, start_time[input->num], input->num+1, input->priority);
+                sprintf(buf, "P%d (%d-%d)\n", input->num+1, start_time[input->num], current_time);
+                strcat(gant, buf);
+                scheduling(input, 0, cnt);
+            }
             is_timed = 1;
         }
     }
     end_time[input->num] = current_time;
     head = input->next;
     finish_order[order++] = input->num;
-    sprintf(buf, "P%d (%d-%d)\n", input->num+1, start_time[input->num], end_time[input->num]);
-    strcat(gant, buf);
-
+    if(start_time[input->num] != -1) {
+        sprintf(buf, "P%d (%d-%d)\n", input->num+1, start_time[input->num], end_time[input->num]);
+        strcat(gant, buf);
+    }
     free(input);
     pthread_exit(NULL);
 }
