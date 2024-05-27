@@ -95,9 +95,9 @@ int main(int argc, char *argv[])
 			}
 			if(strcmp(recv_packet, "EOFEOF") == 0) break;
 
-			for(int i = 0; i < PACKINDICATOR; i++) recv_seq[i] = recv_packet[i]; recv_seq[PACKINDICATOR] = '\0';
-			for(int i = PACKINDICATOR; i < PACKINDICATOR+CHECKSUMSIZE; i++) recv_checksum[i-PACKINDICATOR] = recv_packet[i]; recv_checksum[CHECKSUMSIZE] = '\0';
-			for(int i = PACKINDICATOR+CHECKSUMSIZE; i < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; i++) recv_contents[i-(PACKINDICATOR+CHECKSUMSIZE)] = recv_packet[i]; recv_contents[PAYLOADSIZE] = '\0';
+			for(int i = 0; i < PACKINDICATOR; i++) recv_seq[i] = buf[iter-1][i]; recv_seq[PACKINDICATOR] = '\0';
+			for(int i = PACKINDICATOR; i < PACKINDICATOR+CHECKSUMSIZE; i++) recv_checksum[i-PACKINDICATOR] = buf[iter-1][i]; recv_checksum[CHECKSUMSIZE] = '\0';
+			for(int i = PACKINDICATOR+CHECKSUMSIZE; i < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; i++) recv_contents[i-(PACKINDICATOR+CHECKSUMSIZE)] = buf[iter-1][i]; recv_contents[PAYLOADSIZE] = '\0';
 			sleep(RECEIVEINTERVER);
 
             if(seq != atoi(recv_seq) || now_buf > MAXBUFPACK) {
