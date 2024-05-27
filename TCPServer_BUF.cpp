@@ -8,7 +8,7 @@
 #define PAYLOADSIZE 6
 #define MAXSEQNUM 50
 #define MAXPACKET 50
-#define BUFSIZE 7*(PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE)+1
+#define MAXBUFPACK 7
 
 int main(int argc, char *argv[])
 {
@@ -36,8 +36,7 @@ int main(int argc, char *argv[])
 	SOCKET client_sock;
 	struct sockaddr_in clientaddr;
 	socklen_t addrlen;
-	char buf[BUFSIZE];
-
+	
 	while (1) {
 		// accept()
 		addrlen = sizeof(clientaddr);
@@ -62,6 +61,7 @@ int main(int argc, char *argv[])
 		char last_ack[10];
 		int is_dropped[MAXPACKET]; for(int i=0; i<MAXPACKET; i++) is_dropped[i]=0;
 
+		char buf[MAXBUFPACK][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1];
         char recv_packet[PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1];
 		char recv_seq[PACKINDICATOR+1];
 		char recv_checksum[CHECKSUMSIZE+1];
@@ -73,23 +73,34 @@ int main(int argc, char *argv[])
 		int seqNum = 0;
         int is_re = 0;
 		int is_finish = 0;
+		int iter = 0;
+		int now_buf = 0;
 		// 클라이언트와 데이터 통신
 		while (window[0] < MAXSEQNUM) {
             time += RECEIVEINTERVER;
             for(int i=0; i<WINSIZE; i++) {
                 if(window[i] == MAXSEQNUM+1) window[i] = 0;
             }
+			if(iter >= MAXBUFPACK)
 
 			recv_packet[0] = '\0';	recv_seq[0] = '\0'; recv_checksum[0] = '\0'; recv_contents[0] = '\0';
 			retval = recv(client_sock, recv_packet, PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE, 0);
             recv_packet[retval] = '\0';
-			if(strcmp(recv_packet, "EOF") == 0) break;
+			if(now_buf <= MAXBUFPACK) {
+				strcpy(buf[iter++], recv_packet);
+				buf[iter-1][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE] = '\0';
+				now_buf++;
+			}
+			if(iter >= MAXBUFPACK) iter == 0;
+
+			if(strcmp(recv_packet, "EOFEOF") == 0) break;
 
 			for(int i = 0; i < PACKINDICATOR; i++) recv_seq[i] = recv_packet[i]; recv_seq[PACKINDICATOR] = '\0';
 			for(int i = PACKINDICATOR; i < PACKINDICATOR+CHECKSUMSIZE; i++) recv_checksum[i-PACKINDICATOR] = recv_packet[i]; recv_checksum[CHECKSUMSIZE] = '\0';
 			for(int i = PACKINDICATOR+CHECKSUMSIZE; i < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; i++) recv_contents[i-(PACKINDICATOR+CHECKSUMSIZE)] = recv_packet[i]; recv_contents[PAYLOADSIZE] = '\0';
+			sleep(RECEIVEINTERVER);
 
-            if(seq != atoi(recv_seq)) {
+            if(seq != atoi(recv_seq) || now_buf > MAXBUFPACK) {
                 printf("packet %d is received and dropped. ", atoi(recv_seq));
 				for(int i = 0; i < PAYLOADSIZE; i++) {
 					if(i == 0) printf("(");
@@ -108,7 +119,6 @@ int main(int argc, char *argv[])
                 printf("(%s) is retransmitted.\n", send_ack);
                 is_re = 1;
 
-                sleep(RECEIVEINTERVER);
                 continue;
             }
 
@@ -146,8 +156,7 @@ int main(int argc, char *argv[])
             printf("(%s) is transmitted.\n", send_ack);
 			if(is_finish == 1) break;
             seq++;
-
-            sleep(RECEIVEINTERVER);
+			now_buf--;
 		}
 
 		// 소켓 닫기
