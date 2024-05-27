@@ -81,18 +81,18 @@ int main(int argc, char *argv[])
             for(int i=0; i<WINSIZE; i++) {
                 if(window[i] == MAXSEQNUM+1) window[i] = 0;
             }
-			if(iter >= MAXBUFPACK)
+			if(iter >= MAXBUFPACK) iter = 0;
 
 			recv_packet[0] = '\0';	recv_seq[0] = '\0'; recv_checksum[0] = '\0'; recv_contents[0] = '\0';
 			retval = recv(client_sock, recv_packet, PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE, 0);
             recv_packet[retval] = '\0';
 			if(now_buf <= MAXBUFPACK) {
-				strcpy(buf[iter++], recv_packet);
-				buf[iter-1][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE] = '\0';
+				if(now_buf < MAXBUFPACK) {
+					strcpy(buf[iter++], recv_packet);
+					buf[iter-1][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE] = '\0';
+				}
 				now_buf++;
 			}
-			if(iter >= MAXBUFPACK) iter = 0;
-
 			if(strcmp(recv_packet, "EOFEOF") == 0) break;
 
 			for(int i = 0; i < PACKINDICATOR; i++) recv_seq[i] = recv_packet[i]; recv_seq[PACKINDICATOR] = '\0';
