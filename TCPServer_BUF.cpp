@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 				buf[iter-1][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE] = '\0';
 				now_buf++;
 			}
-			if(iter >= MAXBUFPACK) iter == 0;
+			if(iter >= MAXBUFPACK) iter = 0;
 
 			if(strcmp(recv_packet, "EOFEOF") == 0) break;
 
