@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
     
     int window[WINSIZE] = {0,1,2,3};
 
+    char ENDPACK[PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1] = "9999999999EOFEOFEOF\0";
     char packets[MAXPACKET][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1];
     int packets_sendT[MAXPACKET]; for(int i=0; i<MAXPACKET; i++) packets_sendT[i]=0;
     char checksum[CHECKSUMSIZE+1];
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
 
     int last_seq = 0;
     while(1) {
+        send_contents[0] = '\0';
         int finish = read_contents(fp, send_contents);
         char_array_as_binary(send_contents, PAYLOADSIZE, checksum);
         sprintf(packets[last_seq], "%2d%s%s", last_seq, checksum, send_contents);
@@ -59,6 +61,7 @@ int main(int argc, char *argv[])
         }
     }
     
+    char ENDACK[10] = "ACK = END";
     char acks[MAXPACKET][10];
     int acks_recvT[MAXPACKET]; for(int i=0; i<MAXPACKET; i++) acks_recvT[i]=0;
     int ack_recvT = 0;
@@ -92,17 +95,16 @@ int main(int argc, char *argv[])
                     printf("packet %d is retransmitted ", i);
                     for(int j = PACKINDICATOR+CHECKSUMSIZE; j < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; j++) {
                         if(j == PACKINDICATOR+CHECKSUMSIZE) printf("(");
-                        if(packets[i][j] == 'E' && packets[i][j+1] == 'O' && packets[i][j+2] == 'F') {
+                        if(packets[i][j] == '$') {
                             printf(").\n");
-                            is_EOF = 1;
                             break;
                         }
-                        else printf("%c", packets[i][j]);
+                        printf("%c", packets[i][j]);
                         if(j == PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE-1) printf(").\n");
                     }
                     is_fault = 1;
                     ssthresh = cnt/2;
-                    sleep(SENDINTERVER);
+                    usleep(500000);
                     break;
                 }
             }
@@ -119,21 +121,21 @@ int main(int argc, char *argv[])
             printf("packet %d is transmitted ", seq);
             for(int i = PACKINDICATOR+CHECKSUMSIZE; i < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; i++) {
                 if(i == PACKINDICATOR+CHECKSUMSIZE) printf("(");
-                if(packets[seq][i] == 'E' && packets[seq][i+1] == 'O' && packets[seq][i+2] == 'F') {
+                if(packets[seq][i] == '$') {
                     printf(").\n");
-                    is_EOF = 1;
                     break;
                 }
-                else printf("%c", packets[seq][i]);
+                printf("%c", packets[seq][i]);
                 if(i == PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE-1) printf(").\n");
             }
-            
-            sleep(SENDINTERVER);
-            seqNum += (int)strlen(packets[seq]);
+
+            usleep(500000);
+            seqNum += (PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE);
             sprintf(acks[seq], "ACK = %3d\0", seqNum);
 
             cnt++;
             seq++;
+            if(seq == last_seq) is_EOF = 1;
         }
         
         cnt = 0;
@@ -148,17 +150,16 @@ int main(int argc, char *argv[])
                     printf("packet %d is retransmitted ", i);
                     for(int j = PACKINDICATOR+CHECKSUMSIZE; j < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; j++) {
                         if(j == PACKINDICATOR+CHECKSUMSIZE) printf("(");
-                        if(packets[i][j] == 'E' && packets[i][j+1] == 'O' && packets[i][j+2] == 'F') {
+                        if(packets[i][j] == '$') {
                             printf(").\n");
-                            is_EOF = 1;
                             break;
                         }
-                        else printf("%c", packets[i][j]);
+                        printf("%c", packets[i][j]);
                         if(j == PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE-1) printf(").\n");
                     }
                     is_fault = 1;
                     ssthresh = cnt/2;
-                    sleep(SENDINTERVER);
+                    usleep(500000);
                     break;
                 }
             }
@@ -190,9 +191,19 @@ int main(int argc, char *argv[])
 
             cnt++;
         }
-        if(is_EOF == 1) {
-            if(strcmp(recv_ack, acks[seq-1]) == 0) break;
+
+        if(strcmp(recv_ack, acks[last_seq-1]) == 0) {
+            retval = send(sock, ENDPACK, (int)strlen(ENDPACK), 0);
+
+            while(1) {
+                retval = recv(sock, recv_ack, (int)strlen(acks[0]), MSG_WAITALL);
+                recv_ack[retval] = '\0';
+
+                if(strcmp(recv_ack, ENDACK) == 0) break;
+            }
+            break;
         }
+
         if(cwnd < ssthresh) {
             if(cwnd*2 <= ssthresh) cwnd *= 2;
             else cwnd = ssthresh;
@@ -202,5 +213,5 @@ int main(int argc, char *argv[])
 
 	// 소켓 닫기
 	close(sock);
-	return 0;
+	return 0; 
 }
