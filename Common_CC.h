@@ -162,17 +162,10 @@ int read_contents(FILE* fp, char pack[]) {
     for(int index = 0; index < PAYLOAD; index++) {
         c = fgetc(fp);
         if(c == EOF) {
-            if(index == 0) strcpy(pack, "EOFEOF");
+            for(int i = index; i < PAYLOAD; i++) pack[i] = '$';
             return 1;
         }
         pack[index] = c;
-        if(c == '.') {
-            if(index != PAYLOAD) {
-                pack[++index] = 'E';
-                pack[++index] = 'O';
-                pack[++index] = 'F';
-            }
-        }
     }
     return 0;
 }
