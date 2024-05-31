@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 			for(int i = 0; i < PAYLOADSIZE; i++) {
 				if(i == 0) printf("(");
 				if(recv_contents[i] == '$') {
-					printf("). ");
+					printf(") ");
 					break;
 				}
 				printf("%c", recv_contents[i]);
