@@ -57,11 +57,13 @@ int main(int argc, char *argv[])
 
         int window[WINSIZE] = {0,1,2,3};
 
+		char ENDACK[10] = "ACK = END";
         char send_ack[10];
 		char last_ack[10];
 		char acks[MAXPACKET][10]; for(int i=0; i<MAXPACKET; i++) strcpy(acks[i], "NULL\0");
 		int is_bufferd[MAXPACKET]; for(int i=0; i<MAXPACKET; i++) is_bufferd[i]=-1;
 
+		char ENDPACK[PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1] = "9999999999EOFEOFEOF\0";
 		char buf[MAXBUFPACK][PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1];
         char recv_packet[PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE+1];
 		char recv_seq[PACKINDICATOR+1];
@@ -85,7 +87,11 @@ int main(int argc, char *argv[])
 			recv_packet[0] = '\0';	recv_seq[0] = '\0'; recv_checksum[0] = '\0'; recv_contents[0] = '\0';
 			retval = recv(client_sock, recv_packet, PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE, 0);
             recv_packet[retval] = '\0';
-
+			
+			if(strcmp(recv_packet, ENDPACK) == 0) {
+				retval = send(client_sock, ENDACK, (int)strlen(ENDACK), 0);
+				break;
+			}
 			if(now_buf <= MAXBUFPACK) {
 				if(now_buf < MAXBUFPACK) {
 					strcpy(buf[iter++], recv_packet);
@@ -105,13 +111,12 @@ int main(int argc, char *argv[])
 			for(int i = 0; i < PACKINDICATOR; i++) recv_seq[i] = buf[iter-1][i]; recv_seq[PACKINDICATOR] = '\0';
 			for(int i = PACKINDICATOR; i < PACKINDICATOR+CHECKSUMSIZE; i++) recv_checksum[i-PACKINDICATOR] = buf[iter-1][i]; recv_checksum[CHECKSUMSIZE] = '\0';
 			for(int i = PACKINDICATOR+CHECKSUMSIZE; i < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; i++) recv_contents[i-(PACKINDICATOR+CHECKSUMSIZE)] = buf[iter-1][i]; recv_contents[PAYLOADSIZE] = '\0';
-			if(strcmp(recv_contents, "EOFEOF") == 0) break;
 			sleep(RECEIVEINTERVER);
 
             if(seq != atoi(recv_seq)) {
 				if(strcmp(acks[atoi(recv_seq)], "NULL") != 0) {
 					printf("packet %d is received and dropped. ", atoi(recv_seq));
-					retval = send(client_sock, last_ack, (int)strlen(last_ack), 0);
+					retval = send(client_sock, last_ack, (int)strlen(last_ack), 0); //보낼때가 없어짐
 					printf("(%s) is retransmitted.\n", last_ack);
 					now_buf--;
 					continue;
@@ -127,7 +132,7 @@ int main(int argc, char *argv[])
                 printf("packet %d is received ", atoi(recv_seq));
 
 				for(int i = 0; i < PAYLOADSIZE; i++) {
-					if(recv_contents[i] == 'E' && recv_contents[i+1] == 'O' && recv_contents[i+2] == 'F') break;
+					if(recv_contents[i] == '$') break;
 					fputc(recv_contents[i], fp);
 				}
             }
@@ -138,9 +143,8 @@ int main(int argc, char *argv[])
 
 			for(int i = 0; i < PAYLOADSIZE; i++) {
 				if(i == 0) printf("(");
-				if(recv_contents[i] == 'E' && recv_contents[i+1] == 'O' && recv_contents[i+2] == 'F') {
-					printf(") ");
-					if(is_buf == 0) is_finish = 1;
+				if(recv_contents[i] == '$') {
+					printf("). ");
 					break;
 				}
 				printf("%c", recv_contents[i]);
@@ -156,10 +160,6 @@ int main(int argc, char *argv[])
 					}
 					for(int j = PACKINDICATOR+CHECKSUMSIZE; j < PACKINDICATOR+CHECKSUMSIZE+PAYLOADSIZE; j++) recv_contents[j-(PACKINDICATOR+CHECKSUMSIZE)] = buf[is_bufferd[i]][j]; recv_contents[PAYLOADSIZE] = '\0';
 					for(int j = 0; j < PAYLOADSIZE; j++) {
-						if(recv_contents[j] == 'E' && recv_contents[j+1] == 'O' && recv_contents[j+2] == 'F') {
-							is_finish = 1;
-							break;
-						}
 						fputc(recv_contents[j], fp);
 					}
 					seqNum += (int)strlen(recv_packet);
@@ -187,8 +187,6 @@ int main(int argc, char *argv[])
 				now_buf--;
 				is_buf = 0;
 			}
-			
-			if(is_finish == 1) break;
 		}
 
 		// 소켓 닫기
