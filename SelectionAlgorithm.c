@@ -72,7 +72,7 @@ int main() {
     fclose(fp);
 
     clock_t start = clock();
-    printf("50번째: %d\n70번째: %d\n", Selection(inputs, 0, cnt-1, 50), Selection(inputs, 0, cnt-1, 58));
+    printf("50번째: %d\n70번째: %d\n", Selection(inputs, 0, cnt-1, 50), Selection(inputs, 0, cnt-1, 70));
     clock_t finish = clock();
     printf("running time (ms): %lu\n", finish-start);
 }

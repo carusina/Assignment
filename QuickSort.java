@@ -8,7 +8,7 @@ class QuickSort {
 
         try{
             FileInputStream fileInputStream = new FileInputStream("input_sort.txt");
-            FileOutputStream fileOutputStream = new FileOutputStream("output_quick_sort.xlsx");
+            FileOutputStream fileOutputStream = new FileOutputStream("output_quick_sort.txt");
 
             String input = "";
             int i = 0;

@@ -4,7 +4,7 @@
 using namespace std;
 
 ifstream fin("input_sort.txt");
-ofstream fout("output_merge_sort.xlsx");
+ofstream fout("output_merge_sort.txt");
 
 int temp[100];
 
