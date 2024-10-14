@@ -1,5 +1,8 @@
+// must nedded cmd option '-std=c++11'
+
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <vector>
 #include <tuple>
 #include <sstream>
@@ -70,5 +73,3 @@ int main() {
 
     return 0;
 }
-
-// must nedded cmd option '-std=c++11'
