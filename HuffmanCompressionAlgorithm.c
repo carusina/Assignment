@@ -16,27 +16,11 @@ typedef struct {
     int size;
 } PirorityQueue;
 
-// void insert_node(PirorityQueue* pq, NODE* node) {
-//     pq->heap[pq->size] = node;
-
-//     NODE* temp;
-//     for(int i = pq->size; i > 0; i--) {
-//         if(pq->heap[i]->cnt < pq->heap[i-1]->cnt) {
-//             temp = pq->heap[i-1];
-//             pq->heap[i-1] = pq->heap[i];
-//             pq->heap[i] = temp;
-//         }
-//         else break;
-//     }
-
-//     pq->size++;
-// }
-
 void insert_node(PirorityQueue* pq, NODE* node) {
     pq->heap[pq->size] = node;
     int i = pq->size;
 
-    while(i > 0 && pq->heap[i]->cnt > pq->heap[(i-1)/2]->cnt) {
+    while(i > 0 && pq->heap[i]->cnt < pq->heap[(i-1)/2]->cnt) {
         NODE* temp = pq->heap[(i-1)/2];
         pq->heap[(i-1)/2] = pq->heap[i];
         pq->heap[i] = temp;
@@ -46,24 +30,30 @@ void insert_node(PirorityQueue* pq, NODE* node) {
     pq->size++;
 }
 
-// NODE* PirorityQueue_pop(PirorityQueue* pq) {
-//     NODE* node = pq->heap[0];
-    
-//     for(int i = 0; i < pq->size-1; i++) {
-//         pq->heap[i] = pq->heap[i+1];
-//     }
-//     pq->heap[--pq->size] = NULL;
-
-//     return node;
-// }
-
 NODE* PirorityQueue_pop(PirorityQueue* pq) {
     if(pq->size == 0) return NULL;
 
-    NODE* node = pq->heap[--pq->size];
+    NODE* min_node = pq->heap[0];
+    pq->heap[0] = pq->heap[--pq->size];
     pq->heap[pq->size] = NULL;
 
-    return node;
+    int i = 0;
+    while(i*2+1 < pq->size) {
+        int left = i*2+1;
+        int right = i*2+2;
+        int min = left;
+
+        if(right < pq->size && pq->heap[right]->cnt < pq->heap[left]->cnt) min = right;
+        if(pq->heap[i]->cnt < pq->heap[min]->cnt) break;
+
+        NODE* temp = pq->heap[i];
+        pq->heap[i] = pq->heap[min];
+        pq->heap[min] = temp;
+
+        i = min;
+    }
+
+    return min_node;
 }
 
 NODE* HuffmanCoding(char* file_name) {
@@ -210,7 +200,7 @@ void HuffmanDecoding(NODE* root, char* file_name) {
 int main() {
     NODE* root = HuffmanCoding("Huffman_input.txt");
     HuffmanEncoding(root, "Huffman_input.txt");
-    HuffmanDecoding(root, "Huffman_input2.txt");
+    HuffmanDecoding(root, "Huffman_input2.txt"); // Huffman_encoded
 
     // Compare Huffman_input with Huffman_decoded
     // FILE* file1 = fopen("Huffman_input.txt", "r");
