@@ -5,7 +5,7 @@
 #define ASCII_MAX 128
 #define MAX_LEN 8
 
-typedef struct {
+typedef struct NODE {
     struct NODE *left, *right;
     int ascii;
     int cnt;
@@ -18,29 +18,29 @@ typedef struct {
 
 void insert_node(PirorityQueue* pq, NODE* node) {
     pq->heap[pq->size] = node;
+
+    NODE* temp;
+    for(int i = pq->size; i > 0; i--) {
+        if(pq->heap[i]->cnt < pq->heap[i-1]->cnt) {
+            temp = pq->heap[i-1];
+            pq->heap[i-1] = pq->heap[i];
+            pq->heap[i] = temp;
+        }
+        else break;
+    }
+
     pq->size++;
 }
 
-NODE* delete_min_node(PirorityQueue* pq) {
-    NODE* min_node;
-    int min = __INT_MAX__;
-    int min_idx = -1;
-
-    for(int i = 0; i < pq->size; i++) {
-        if(pq->heap[i]->cnt < min) {
-            min = pq->heap[i]->cnt;
-            min_idx = i;
-        }
-    }
-    min_node = pq->heap[min_idx];
-
-    for(int i = min_idx; i < pq->size-1; i++) {
+NODE* PirorityQueue_pop(PirorityQueue* pq) {
+    NODE* node = pq->heap[0];
+    
+    for(int i = 0; i < pq->size-1; i++) {
         pq->heap[i] = pq->heap[i+1];
     }
-    pq->heap[pq->size-1] = NULL;
-    pq->size--;
+    pq->heap[--pq->size] = NULL;
 
-    return min_node;
+    return node;
 }
 
 NODE* HuffmanCoding(char* file_name) {
@@ -77,8 +77,8 @@ NODE* HuffmanCoding(char* file_name) {
     }
 
     while(pq->size >= 2) {
-        NODE* left = delete_min_node(pq);
-        NODE* right = delete_min_node(pq);
+        NODE* left = PirorityQueue_pop(pq);
+        NODE* right = PirorityQueue_pop(pq);
 
         NODE* node = (NODE*)malloc(sizeof(NODE));
         node->cnt = left->cnt + right->cnt;
