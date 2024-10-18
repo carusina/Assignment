@@ -16,29 +16,52 @@ typedef struct {
     int size;
 } PirorityQueue;
 
+// void insert_node(PirorityQueue* pq, NODE* node) {
+//     pq->heap[pq->size] = node;
+
+//     NODE* temp;
+//     for(int i = pq->size; i > 0; i--) {
+//         if(pq->heap[i]->cnt < pq->heap[i-1]->cnt) {
+//             temp = pq->heap[i-1];
+//             pq->heap[i-1] = pq->heap[i];
+//             pq->heap[i] = temp;
+//         }
+//         else break;
+//     }
+
+//     pq->size++;
+// }
+
 void insert_node(PirorityQueue* pq, NODE* node) {
     pq->heap[pq->size] = node;
+    int i = pq->size;
 
-    NODE* temp;
-    for(int i = pq->size; i > 0; i--) {
-        if(pq->heap[i]->cnt < pq->heap[i-1]->cnt) {
-            temp = pq->heap[i-1];
-            pq->heap[i-1] = pq->heap[i];
-            pq->heap[i] = temp;
-        }
-        else break;
+    while(i > 0 && pq->heap[i]->cnt > pq->heap[(i-1)/2]->cnt) {
+        NODE* temp = pq->heap[(i-1)/2];
+        pq->heap[(i-1)/2] = pq->heap[i];
+        pq->heap[i] = temp;
+        i = (i-1)/2;
     }
 
     pq->size++;
 }
 
-NODE* PirorityQueue_pop(PirorityQueue* pq) {
-    NODE* node = pq->heap[0];
+// NODE* PirorityQueue_pop(PirorityQueue* pq) {
+//     NODE* node = pq->heap[0];
     
-    for(int i = 0; i < pq->size-1; i++) {
-        pq->heap[i] = pq->heap[i+1];
-    }
-    pq->heap[--pq->size] = NULL;
+//     for(int i = 0; i < pq->size-1; i++) {
+//         pq->heap[i] = pq->heap[i+1];
+//     }
+//     pq->heap[--pq->size] = NULL;
+
+//     return node;
+// }
+
+NODE* PirorityQueue_pop(PirorityQueue* pq) {
+    if(pq->size == 0) return NULL;
+
+    NODE* node = pq->heap[--pq->size];
+    pq->heap[pq->size] = NULL;
 
     return node;
 }
@@ -188,6 +211,22 @@ int main() {
     NODE* root = HuffmanCoding("Huffman_input.txt");
     HuffmanEncoding(root, "Huffman_input.txt");
     HuffmanDecoding(root, "Huffman_input2.txt");
+
+    // Compare Huffman_input with Huffman_decoded
+    // FILE* file1 = fopen("Huffman_input.txt", "r");
+    // FILE* file2 = fopen("Huffman_decoded.txt", "r");
+    // char ch1, ch2;
+
+    // int is_sam = 1;
+    // while((ch1 = fgetc(file1)) != EOF && (ch2 = fgetc(file2)) != EOF) {
+    //     if(ch1 != ch2) {
+    //         is_sam = 0;
+    //         break;
+    //     }
+    // }
+    // printf("%d\n", is_sam);
+    // fclose(file1);
+    // fclose(file2);
 
     return 0;
 }
