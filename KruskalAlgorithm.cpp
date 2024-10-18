@@ -12,11 +12,22 @@
 using namespace std;
 
 bool is_Cycle(vector<tuple<char, char, int> > tree, char start, char end) {
+    bool cycle = false;
+    vector<tuple<char, char, int> > tree_cpy(tree);
+
     for(const auto& edge : tree) {
         if(get<0>(edge) == start && get<1>(edge) == end) return 1;
-        else if(get<0>(edge) == start && get<1>(edge) != end) return is_Cycle(tree, get<1>(edge), end);
+        else if(get<1>(edge) == start && get<0>(edge) == end) return 1;
+        else if(get<0>(edge) == start && get<1>(edge) != end) {
+            tree_cpy.erase(find(tree_cpy.begin(), tree_cpy.end(), edge));
+            cycle = is_Cycle(tree_cpy, get<1>(edge), end);
+        }
+        else if(get<1>(edge) == start && get<0>(edge) != end) {
+            tree_cpy.erase(find(tree_cpy.begin(), tree_cpy.end(), edge));
+            cycle = is_Cycle(tree_cpy, get<0>(edge), end);
+        }
     }
-    return 0;
+    return cycle;
 }
 
 vector<tuple<char, char, int> > KrusalMST(vector<tuple<char, char, int> > edges, set<char> verteices) {
