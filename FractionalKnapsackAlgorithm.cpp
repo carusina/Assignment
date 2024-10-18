@@ -67,7 +67,7 @@ vector<Goods> readInputFile(const string& filename) {
         double weight, value;
         char comma;
 
-        getline(ss, name, ','); // 이름은 공백 포함 가능하므로 getline 사용
+        getline(ss, name, ',');
         ss >> weight >> comma >> value;
 
         goods.push_back({name, weight, value});
