@@ -33,6 +33,8 @@ def JobScheduling(input):
                 if machine.jobs[-1][1][1] <= input_job[1][0]:
                     machine.jobs.append(input_job)
                     is_appended = True
+                    break
+                
         if not is_appended:
             machine = Machine()
             machine.jobs.append(input_job)
