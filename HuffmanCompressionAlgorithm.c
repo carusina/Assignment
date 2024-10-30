@@ -144,6 +144,9 @@ void HuffmanEncoding(NODE* root, char* file_name) {
         code[i][0] = '\0';
     }
     getCode(root, code, c);
+    for(int i = 0; i < ASCII_MAX; i++) {
+        if(code[i][0] != '\0') printf("%c: %s\n", i, code[i]);
+    }
     
     FILE* output = fopen("Huffman_encoded.txt", "w");
     if (output == NULL) {
