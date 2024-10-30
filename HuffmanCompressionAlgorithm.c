@@ -144,9 +144,6 @@ void HuffmanEncoding(NODE* root, char* file_name) {
         code[i][0] = '\0';
     }
     getCode(root, code, c);
-    for(int i = 0; i < ASCII_MAX; i++) {
-        if(code[i][0] != '\0') printf("%c: %s\n", i, code[i]);
-    }
     
     FILE* output = fopen("Huffman_encoded.txt", "w");
     if (output == NULL) {
@@ -203,6 +200,18 @@ void HuffmanDecoding(NODE* root, char* file_name) {
 int main() {
     NODE* root = HuffmanCoding("Huffman_input.txt");
     // HuffmanEncoding(root, "Huffman_input.txt");
+    char code[ASCII_MAX][MAX_LEN];
+    for(int i = 0; i < ASCII_MAX; i++) {
+        code[i][0] = '\0';
+    }
+    char c[MAX_LEN] = "";
+    getCode(root, code, c);
+    for(int i = 0; i < ASCII_MAX; i++) {
+        if(code[i][0] != '\0') {
+            printf("%c: %s\n", i, code[i]);
+        }
+    }
+
     HuffmanDecoding(root, "Huffman_input2.txt"); // Huffman_encoded
 
     // Compare Huffman_input with Huffman_decoded
