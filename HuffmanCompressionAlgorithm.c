@@ -202,7 +202,7 @@ void HuffmanDecoding(NODE* root, char* file_name) {
 
 int main() {
     NODE* root = HuffmanCoding("Huffman_input.txt");
-    HuffmanEncoding(root, "Huffman_input.txt");
+    // HuffmanEncoding(root, "Huffman_input.txt");
     HuffmanDecoding(root, "Huffman_input2.txt"); // Huffman_encoded
 
     // Compare Huffman_input with Huffman_decoded
