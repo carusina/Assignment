@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class ShellSotringAlgorithm {
+public class ShellSortringAlgorithm {
     public static void main(String[] args) {
         List<Integer> inpnut_nums = readNumbersFromFile("input.txt");
         ShellSort(inpnut_nums);

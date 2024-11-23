@@ -21,26 +21,50 @@ void InsertionSort(vector<int>& nums) {
     }
 }
 
-void MergeBlocks(int input_HDD[], int block1_index, int block2_index, int block1_size, int block2_size, int output_HDD[]) {
+void MergeBlocks(vector<int>& memory, int input_HDD[], int block1_index, int block2_index, int block1_size, int block2_size, int output_HDD[]) {
     int i = block1_index, j = block2_index;
     int k = block1_index;
     int end1 = block1_index + block1_size;
     int end2 = block2_index + block2_size;
-
+    
     while(i < end1 && j < end2) {
-        if(input_HDD[i] < input_HDD[j]) {
-            output_HDD[k++] = input_HDD[i++];
+        memory.clear();
+
+        while(memory.size() < MEMORY_SIZE && i < end1 && j < end2) {
+            if(input_HDD[i] < input_HDD[j]) {
+                memory.push_back(input_HDD[i++]);
+            }
+            else {
+                memory.push_back(input_HDD[j++]);
+            }
         }
-        else {
-            output_HDD[k++] = input_HDD[j++];
+
+        for(int num : memory) {
+            output_HDD[k++] = num;
         }
     }
 
     while(i < end1) {
-        output_HDD[k++] = input_HDD[i++];
+        memory.clear();
+
+        while(memory.size() < MEMORY_SIZE && i < end1) {
+            memory.push_back(input_HDD[i++]);
+        }
+        
+        for(int num : memory) {
+            output_HDD[k++] = num;
+        }
     }
     while(j < end2) {
-        output_HDD[k++] = input_HDD[j++];
+        memory.clear();
+        
+        while(memory.size() < MEMORY_SIZE && j < end2) {
+            memory.push_back(input_HDD[j++]);
+        }
+        
+        for(int num : memory) {
+            output_HDD[k++] = num;
+        }
     }
 }
 
@@ -67,7 +91,7 @@ void ExternalSort(int input_HDD[], int n, int output_HDD[]) {
                 int block1_index = accumulate(BlockSizes.begin(), BlockSizes.begin()+i, 0);
                 int block2_index = block1_index + BlockSizes[i];
 
-                MergeBlocks(input_HDD, block1_index, block2_index, BlockSizes[i], BlockSizes[i+1], output_HDD);
+                MergeBlocks(memory, input_HDD, block1_index, block2_index, BlockSizes[i], BlockSizes[i+1], output_HDD);
                 newBlockSizes.push_back(BlockSizes[i]+BlockSizes[i+1]);
             }
             else {

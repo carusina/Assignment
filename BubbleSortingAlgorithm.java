@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class BubbleSotringAlgorithm {
+public class BubbleSortingAlgorithm {
     public static void main(String[] args) {
         List<Integer> inpnut_nums = readNumbersFromFile("input.txt");
         BubbleSort(inpnut_nums);
