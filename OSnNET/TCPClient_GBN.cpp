@@ -1,0 +1,116 @@
+#include "Common.h"
+
+char *SERVERIP = (char *)"127.0.0.1";
+#define SERVERPORT 9000
+#define BUFSIZE    512
+#define WINSIZE 4
+#define TIMEOUTINTERVER 5
+
+int main(int argc, char *argv[])
+{
+	int retval;
+
+	// 명령행 인수가 있으면 IP 주소로 사용
+	if (argc > 1) SERVERIP = argv[1];
+
+	// 소켓 생성
+	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0); // 인터넷 주소 체계의 연결형 서비스
+                                                   // 성공적으로 생성시 소켓 디스크립터 반환
+	if (sock == INVALID_SOCKET) err_quit("socket()");
+
+	// connect()
+	struct sockaddr_in serveraddr;
+	memset(&serveraddr, 0, sizeof(serveraddr)); // serveraddr 세팅
+	serveraddr.sin_family = AF_INET;
+	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr); // 서버 IP를 AF_INET 기준으로 binary 형태로 변환해서 저장
+	serveraddr.sin_port = htons(SERVERPORT);
+	retval = connect(sock, (struct sockaddr *)&serveraddr, sizeof(serveraddr)); // 서버에 연결 요청, 바로 수락되지 않고
+                                                                                // 서버의 대기 큐에서 대기 중이면 블로킹 상태
+	if (retval == SOCKET_ERROR) err_quit("connect()");
+
+	// 데이터 통신에 사용할 변수
+	char buf[BUFSIZE + 1];
+	int len;
+    
+    int window[4] = {0,1,2,3};
+
+    char* packets[8] = {"packet 0", "packet 1", "packet 2", "packet 3", "packet 4", "packet 5", "packet 6", "packet 7"};
+    int packets_sendT[8] = {0,0,0,0,0,0,0,0};
+
+    char* acks[8] = {"ACK 0", "ACK 1", "ACK 2", "ACK 3", "ACK 4", "ACK 5", "ACK 6", "ACK 7"};
+    int ack_recvT = 0;
+
+    char recv_ack[6];
+    char last_ack[6] = "NULL";
+
+    int time = 0;
+    int seq = 0;
+    int is_dupl = 0;
+	// 서버와 데이터 통신
+    for(; seq < 4; seq++) {
+        time++;
+        if(seq == 2) {
+            printf("\"%s\" is transmitted.\n", packets[seq]);
+            packets_sendT[seq] = time;
+            sleep(1);
+            continue;
+        }
+        retval = send(sock, packets[seq], (int)strlen(packets[seq]), 0);
+        packets_sendT[seq] = time;
+        printf("\"%s\" is transmitted.\n", packets[seq]);
+        sleep(1);
+    }
+    
+	while (window[0] < 8) {
+        time++;
+        for(int i=0; i<4; i++) {
+            if(window[i] == 9) window[i] = 0;
+        }
+
+        if(seq >= window[WINSIZE-1]) {
+            retval = recv(sock, recv_ack, (int)strlen(acks[window[0]]), MSG_WAITALL);
+            recv_ack[retval] = '\0';
+
+            if(strcmp(recv_ack, last_ack) != 0) {
+                printf("\"%s\" is received. ", recv_ack);
+                strcpy(last_ack, recv_ack);
+                ack_recvT = time;
+                is_dupl = 0;
+
+                for(int i = 0; i < WINSIZE; i++) window[i]++;
+                if(window[0] > 4) {
+                    printf("\n");
+                    sleep(1);
+                    continue;
+                }
+            }
+            else if(is_dupl == 0) {
+                printf("\"%s\" is received and ignored.\n", recv_ack);
+                is_dupl = 1;
+            }
+        }
+
+        if(packets_sendT[window[0]] != 0 && time-packets_sendT[window[0]] >= TIMEOUTINTERVER) {
+            printf("%s is timeout.\n", packets[window[0]]);
+            seq = window[0];
+        }
+        
+		if(seq <= window[WINSIZE-1] || seq == window[0]) {
+            if(seq == 8) {
+                sleep(1);
+                continue;
+            }
+
+            retval = send(sock, packets[seq], (int)strlen(packets[seq]), 0);
+            packets_sendT[seq] = time;
+            printf("\"%s\" is transmitted.\n", packets[seq]);
+            seq++;
+        }
+
+        sleep(1);
+	}
+
+	// 소켓 닫기
+	close(sock);
+	return 0;
+}
